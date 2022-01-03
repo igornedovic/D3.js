@@ -1,0 +1,9 @@
+body {
+  font: 10px sans-serif;
+}
+.axis path,
+.line {
+  fill: none;
+  stroke: steelblue;
+  stroke-width: 1.5px;
+}
