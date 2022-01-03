@@ -1,7 +1,7 @@
-var width = 760;
-var height = 700;
+var width = 1000;
+var height = 1000;
 var canvas = d3
-  .select("body")
+  .select(".canvas")
   .append("svg")
   .attr("width", width)
   .attr("height", height);
@@ -11,8 +11,8 @@ d3.json("serbia.json", function (data) {
 
   var projection = d3.geo
     .mercator()
-    .center([21.45, 44.5])
-    .scale(5500)
+    .center([20.75, 43.85])
+    .scale(8500)
     .translate([width / 2, height / 2]);
   var path = d3.geo.path().projection(projection);
 
