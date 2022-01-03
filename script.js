@@ -65,12 +65,12 @@ var linePlot = d3.svg
   });
 // Attach to body
 var svg = d3
-  .select("body")
+  .select(".canvas")
   .append("svg")
   .attr("width", width + margin.left + margin.right)
   .attr("height", height + margin.top + margin.bottom)
   .append("g")
-  .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+  .attr("transform", "translate(" + margin.left + "," + margin.bottom + ")")
 // draw histogram bars
 var bar = svg
   .selectAll(".bar")
