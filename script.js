@@ -1,40 +1,41 @@
 const margin = {
-  top: 20,
-  right: 20,
-  bottom: 30,
-  left: 50,
-};
+    gore: 20,
+    desno: 20,
+    dole: 30,
+    levo: 50,
+  },
+  sirina = 900 - margin.levo - margin.desno,
+  visina = 700 - margin.gore - margin.dole;
 
 const prikaz = ["Stvarni", "Idealni"];
 // drugacije boje u odnosu na to sta se prikazuje
 const boje = d3.scale.category10();
 boje.domain(prikaz);
 
-// format za brojeve
-var format = d3.format(",.0f");
-
-const width = 1000 - margin.left - margin.right;
-const height = 750 - margin.top - margin.bottom;
+// format za broj na osi
+const format = d3.format(",.0f");
 
 const nizBrojeva = 1000;
 const prosek = 20;
 const stDevijacija = 5;
 const normalnaRaspodela = d3.random.normal(prosek, stDevijacija);
 // generise 1000 brojeva [0,1,...,999] i svaki broj mapira u novu vrednost funkcijom normalnaRaspodela.
-// Nove vrednosti se cuvaju u nizu stvarniPodaci
+// nove vrednosti se cuvaju u nizu stvarniPodaci
 const stvarniPodaci = d3.range(nizBrojeva).map(normalnaRaspodela);
+// histogram sa dvadeset uniformno dodeljenih stubica
 const podaciZaStubice = d3.layout.histogram().bins(20)(stvarniPodaci);
 
 const min = d3.min(stvarniPodaci);
 const max = d3.max(stvarniPodaci);
 
 // funkcija za skaliranje vrednosti na x-osi
-const x = d3.scale.linear().range([0, width]).domain([min, max]);
+const x = d3.scale.linear().range([0, sirina]).domain([min, max]);
 
-var yMax = d3.max(podaciZaStubice, function (d) {
+const yMax = d3.max(podaciZaStubice, function (d) {
   return d.length;
 });
-var y = d3.scale.linear().domain([0, yMax]).range([height, 0]);
+// funkcija za skaliranje vrednosti na y-osi
+const y = d3.scale.linear().domain([0, yMax]).range([visina, 0]);
 
 const xOsa = d3.svg.axis().scale(x).ticks(10).orient("bottom");
 const yOsa = d3.svg.axis().scale(y).orient("left").tickFormat(d3.format(".2s"));
@@ -63,20 +64,26 @@ function vratiIdealnePodatke(stvarniPodaci, prosek, varijansa) {
   return paroviPodataka;
 }
 
+function funkcijaGustineRaspodele(x, prosek, varijansa) {
+  const m = Math.sqrt(2 * Math.PI * varijansa);
+  const e = Math.exp(-Math.pow(x - prosek, 2) / (2 * varijansa));
+  return e / m;
+}
+
 // normalizovana x-osa za prikaz vrednosti krive
 const xN = d3.scale
   .linear() // skaliranje vrednosti tako da odnos ulaznih i izlaznih podataka bude linearan
-  .range([0, width])
+  .range([0, sirina])
   .domain(
     d3.extent(idealniPodaci, function (d) {
       return d.podatak;
     })
-  ); // niz minimuma i maksimuma za svaki podatak
+  );
 
 // normalizovana y-osa za prikaz vrednosti krive
 const yN = d3.scale
   .linear()
-  .range([height, 0])
+  .range([visina, 0])
   .domain(
     d3.extent(idealniPodaci, function (d) {
       return d.verovatnoca;
@@ -93,33 +100,27 @@ const skicaKrive = d3.svg
     return yN(d.verovatnoca);
   });
 
-// funkcija gustine raspodele verovatnoca normalne raspodele
-function funkcijaGustineRaspodele(x, prosek, varijansa) {
-  const m = Math.sqrt(2 * Math.PI * varijansa);
-  const e = Math.exp(-Math.pow(x - prosek, 2) / (2 * varijansa));
-  return e / m;
-}
-
+// Dodavanje svg elementa na platno
 const svg = d3
   .select(".canvas")
   .append("svg")
-  .attr("width", width)
-  .attr("height", height)
+  .attr("width", sirina + margin.levo + margin.desno)
+  .attr("height", visina + margin.gore + margin.dole)
   .append("g")
-  .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+  .attr("transform", "translate(" + margin.levo + "," + margin.gore + ")");
 
-// kreiranje placeholdera za stubice
+// Kreiranje placeholdera za stubice
 const stubic = svg
-  .selectAll(".bar")
+  .selectAll(".stubic")
   .data(podaciZaStubice)
   .enter()
   .append("g")
-  .attr("class", "bar")
+  .attr("class", "stubic")
   .attr("transform", function (d) {
     return "translate(" + x(d.x) + "," + y(d.y) + ")";
   });
 
-// jedan stubic predstavlja vertikalni pravougaonik
+// Jedan stubic predstavlja vertikalni pravougaonik
 stubic
   .append("rect")
   .attr("x", 1)
@@ -127,13 +128,13 @@ stubic
     return x(d.dx) - x(0) <= 0 ? 0 : x(d.dx) - x(0) - 1;
   })
   .attr("height", function (d) {
-    return height - y(d.y);
+    return visina - y(d.y);
   })
   .attr("fill", function () {
     return boje(prikaz[0]);
   });
 
-// pozicioniranje vrednosti (tekst) na vrhu svakog stubica
+// Pozicioniranje vrednosti (tekst) na vrhu svakog stubica
 stubic
   .append("text")
   .attr("dy", ".75em")
@@ -144,7 +145,7 @@ stubic
     return format(d.y);
   });
 
-// crtanje idealne krive normalne raspodele (Gausova kriva)
+// Crtanje idealne krive normalne raspodele (Gausova kriva)
 const kriva = svg
   .selectAll(".prikaz")
   .data([1]) // samo jedna linija
@@ -152,10 +153,10 @@ const kriva = svg
   .append("g")
   .attr("class", "prikaz");
 
-// dodavanje krive na platno
+// Dodavanje krive na platno
 kriva
   .append("path") // path element za krive linije (moze bilo koji oblik da se napravi pomocu path)
-  .data(idealniPodaci)
+  .datum(idealniPodaci)
   .attr("class", "line")
   .attr("d", skicaKrive)
   .style("stroke", function () {
@@ -163,13 +164,12 @@ kriva
   })
   .style({ "stroke-width": "2px", fill: "none" });
 
-// dodavanje x-ose na platno
-svg.append("g")
+// Dodavanje x-ose na platno
+svg
+  .append("g")
   .attr("class", "x axis")
-  .attr("tansform", "translate(0," + height + ")")
+  .attr("transform", "translate(0," + visina + ")")
   .call(xOsa);
 
-// dodavanje y-ose na platno
-svg.append("g")
-  .attr("class", "y axis")
-  .call(yOsa);
+// Dodavanje y-ose na platno
+svg.append("g").attr("class", "y axis").call(yOsa);
