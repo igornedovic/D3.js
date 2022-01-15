@@ -1,22 +1,22 @@
-var width = 1000;
-var height = 1000;
-var canvas = d3
+const sirina = 1000;
+const visina = 1000;
+const platno = d3
   .select(".canvas")
   .append("svg")
-  .attr("width", width)
-  .attr("height", height);
+  .attr("width", sirina)
+  .attr("height", visina);
 
-d3.json("serbia.json", function (data) {
-  var group = canvas.selectAll("g").data(data.features).enter().append("g");
+d3.json("srbija.json", function (podaci) {
+  const grupa = platno.selectAll("g").data(podaci.features).enter().append("g");
 
-  var projection = d3.geo
+  const projekcija = d3.geo
     .mercator()
     .center([20.75, 43.85])
     .scale(8500)
-    .translate([width / 2, height / 2]);
-  var path = d3.geo.path().projection(projection);
+    .translate([sirina / 2, visina / 2]);
+  const path = d3.geo.path().projection(projekcija);
 
-  var areas = group
+  const povrsine = grupa
     .append("path")
     .attr("d", path)
     .attr("class", "area")
@@ -28,7 +28,7 @@ d3.json("serbia.json", function (data) {
       d3.select(this).transition().duration("50").attr("fill", "steelblue");
     });
 
-  group
+  grupa
     .append("text")
     .attr("x", function (d) {
       return path.centroid(d)[0];
